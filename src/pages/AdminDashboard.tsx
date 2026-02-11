@@ -74,23 +74,15 @@ const AdminDashboard = () => {
   useEffect(() => { fetchData(); }, [user]);
 
   const handleStatusChange = async (candidateId: string, newStatus: string) => {
-    const old = candidates.find((c) => c.id === candidateId);
-    const { error } = await supabase
-      .from("candidates")
-      .update({ status: newStatus as any })
-      .eq("id", candidateId);
+    const { error } = await supabase.rpc("admin_update_candidate_status", {
+      _candidate_id: candidateId,
+      _new_status: newStatus,
+      _reason: "",
+    });
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      await supabase.from("audit_logs").insert({
-        actor_id: user!.id,
-        action: "status_change",
-        entity_type: "candidate",
-        entity_id: candidateId,
-        old_value: { status: old?.status },
-        new_value: { status: newStatus },
-      });
       toast({ title: "Status updated" });
       fetchData();
     }
