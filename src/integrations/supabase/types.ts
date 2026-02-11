@@ -696,6 +696,20 @@ export type Database = {
         }
         Returns: string
       }
+      admin_record_payment: {
+        Args: {
+          _amount: number
+          _candidate_id: string
+          _notes?: string
+          _payment_type?: string
+          _status?: string
+        }
+        Returns: string
+      }
+      admin_update_candidate_status: {
+        Args: { _candidate_id: string; _new_status: string; _reason?: string }
+        Returns: undefined
+      }
       confirm_role_selections: {
         Args: { _candidate_id: string; _decisions: Json }
         Returns: undefined
@@ -719,6 +733,10 @@ export type Database = {
       submit_intake_form: {
         Args: { _candidate_id: string; _form_data: Json }
         Returns: undefined
+      }
+      upsert_credential_intake: {
+        Args: { _candidate_id: string; _form_data: Json }
+        Returns: string
       }
     }
     Enums: {

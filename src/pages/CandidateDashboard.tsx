@@ -7,16 +7,19 @@ import CandidateTimeline from "@/components/dashboard/CandidateTimeline";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import CandidateIntakePage from "@/pages/candidate/CandidateIntakePage";
 import CandidateRolesPage from "@/pages/candidate/CandidateRolesPage";
+import CandidateCredentialsPage from "@/pages/candidate/CandidateCredentialsPage";
+import CandidatePaymentsPage from "@/pages/candidate/CandidatePaymentsPage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, Briefcase, Users, Calendar, UserPlus, ClipboardList, Bell } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, Users, Calendar, UserPlus, ClipboardList, Bell, DollarSign, KeyRound } from "lucide-react";
 
 const navItems = [
   { label: "Overview", path: "/candidate-dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
   { label: "Intake Form", path: "/candidate-dashboard/intake", icon: <FileText className="h-4 w-4" /> },
   { label: "Roles", path: "/candidate-dashboard/roles", icon: <Briefcase className="h-4 w-4" /> },
+  { label: "Credentials", path: "/candidate-dashboard/credentials", icon: <KeyRound className="h-4 w-4" /> },
+  { label: "Payments", path: "/candidate-dashboard/payments", icon: <DollarSign className="h-4 w-4" /> },
   { label: "Applications", path: "/candidate-dashboard/applications", icon: <ClipboardList className="h-4 w-4" /> },
-  { label: "Interviews", path: "/candidate-dashboard/interviews", icon: <Calendar className="h-4 w-4" /> },
   { label: "Refer a Friend", path: "/candidate-dashboard/referrals", icon: <UserPlus className="h-4 w-4" /> },
 ];
 
@@ -88,9 +91,14 @@ const CandidateDashboard = () => {
   if (subPath === "intake") {
     return <CandidateIntakePage candidate={candidate} onStatusChange={fetchData} />;
   }
-
   if (subPath === "roles") {
     return <CandidateRolesPage candidate={candidate} onStatusChange={fetchData} />;
+  }
+  if (subPath === "credentials") {
+    return <CandidateCredentialsPage candidate={candidate} onStatusChange={fetchData} />;
+  }
+  if (subPath === "payments") {
+    return <CandidatePaymentsPage candidate={candidate} />;
   }
 
   const status = candidate?.status || "lead";
@@ -154,6 +162,16 @@ const CandidateDashboard = () => {
               {status === "roles_suggested" && (
                 <Button variant="hero" className="mt-4" onClick={() => window.location.href = "/candidate-dashboard/roles"}>
                   Review Roles
+                </Button>
+              )}
+              {status === "roles_confirmed" && (
+                <Button variant="outline" className="mt-4" onClick={() => window.location.href = "/candidate-dashboard/payments"}>
+                  <DollarSign className="mr-2 h-4 w-4" /> View Payment Status
+                </Button>
+              )}
+              {status === "paid" && (
+                <Button variant="hero" className="mt-4" onClick={() => window.location.href = "/candidate-dashboard/credentials"}>
+                  <KeyRound className="mr-2 h-4 w-4" /> Complete Credential Intake
                 </Button>
               )}
               {status === "active_marketing" && (
