@@ -1,10 +1,33 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const { error } = await signIn(email, password);
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+    } else {
+      navigate("/admin-dashboard");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -12,10 +35,10 @@ const AdminLogin = () => {
         <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-8 card-elevated">
           <h1 className="mb-2 text-2xl font-bold text-card-foreground">Admin Login</h1>
           <p className="mb-6 text-sm text-muted-foreground">Internal access only</p>
-          <form className="space-y-4">
-            <div><Label>Email</Label><Input type="email" placeholder="admin@hyrind.com" required /></div>
-            <div><Label>Password</Label><Input type="password" placeholder="••••••••" required /></div>
-            <Button variant="hero" className="w-full">Sign In</Button>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
+            <div><Label>Password</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} required /></div>
+            <Button variant="hero" className="w-full" disabled={submitting}>{submitting ? "Signing in..." : "Sign In"}</Button>
           </form>
         </div>
       </main>
