@@ -83,6 +83,15 @@ const CandidateReferralsPage = ({ candidate }: CandidateReferralsPageProps) => {
         }
       }
 
+      // Send referral email to friend (non-blocking)
+      supabase.functions.invoke("send-email", {
+        body: {
+          type: "referral_email",
+          to: friendEmail.trim(),
+          data: { friend_name: friendName.trim(), referrer_name: "A HYRIND candidate", referral_note: referralNote.trim() },
+        },
+      }).catch(() => {});
+
       toast({ title: "Referral submitted! Thank you." });
       setFriendName(""); setFriendEmail(""); setFriendPhone(""); setReferralNote("");
       fetchReferrals();

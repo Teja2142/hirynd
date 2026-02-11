@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import SEO from "@/components/SEO";
 import Footer from "@/components/layout/Footer";
@@ -17,12 +18,34 @@ const Contact = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (wantsMarketing === "yes" && !termsAccepted) {
       toast({ title: "Please accept the Terms & Conditions and Privacy Policy to continue.", variant: "destructive" });
       return;
     }
+
+    // Try sending emails via edge function (non-blocking)
+    if (wantsMarketing === "yes") {
+      const form = e.target as HTMLFormElement;
+      const formData = new FormData(form);
+      const name = formData.get("name") as string || "";
+      const email = formData.get("email") as string || "";
+      const phone = formData.get("phone") as string || "";
+      const university = formData.get("university") as string || "";
+      const visaStatus = formData.get("visa_status") as string || "";
+
+      // Send confirmation to user
+      supabase.functions.invoke("send-email", {
+        body: { type: "interest_confirmation", to: email, data: { name } },
+      }).catch(() => {});
+
+      // Notify admin
+      supabase.functions.invoke("send-email", {
+        body: { type: "admin_notification", to: "admin@hyrind.com", data: { name, email, phone, university, visa_status: visaStatus, referral_source: referralSource } },
+      }).catch(() => {});
+    }
+
     toast({
       title: "Form Submitted Successfully!",
       description: wantsMarketing === "yes"
@@ -93,14 +116,14 @@ const Contact = () => {
                   <p className="mb-4 text-sm text-muted-foreground">Tell us about yourself so we can match you with the right recruiter and career strategy. All fields marked * are required.</p>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div><Label>Full Name *</Label><Input required placeholder="Your full name" /></div>
-                    <div><Label>Email *</Label><Input required type="email" placeholder="you@email.com" /></div>
+                    <div><Label>Full Name *</Label><Input name="name" required placeholder="Your full name" /></div>
+                    <div><Label>Email *</Label><Input name="email" required type="email" placeholder="you@email.com" /></div>
                   </div>
-                  <div><Label>Phone *</Label><Input required placeholder="+1 (555) 000-0000" /></div>
+                  <div><Label>Phone *</Label><Input name="phone" required placeholder="+1 (555) 000-0000" /></div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <Label>University</Label>
-                      <Input placeholder="University name (if applicable)" />
+                      <Input name="university" placeholder="University name (if applicable)" />
                       <p className="mt-1 text-xs text-muted-foreground">Leave blank if not applicable</p>
                     </div>
                     <div>
