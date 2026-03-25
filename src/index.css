@@ -159,4 +159,13 @@
     @apply ring-2 ring-secondary ring-offset-2;
     background: linear-gradient(to bottom right, hsl(var(--secondary) / 0.1), transparent);
   }
+
+  /* Global styles from source repo */
+  body {
+    background-color: #f3f4f6 !important;
+  }
+  
+  html {
+     scroll-behavior: smooth;
+  }
 }

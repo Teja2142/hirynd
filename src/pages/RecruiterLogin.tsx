@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -119,122 +119,267 @@ const RecruiterLogin = () => {
 
 
 
-  if (registrationComplete) {
+  if (registrationComplete || approvalStatus === "pending_approval") {
     return (
-      <div className="min-h-screen bg-background"><Header />
-        <main className="flex items-center justify-center py-20">
-          <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-8 card-elevated text-center">
-            <Clock className="mx-auto mb-4 h-12 w-12 text-secondary" />
-            <h1 className="mb-2 text-2xl font-bold text-card-foreground">Thank you for registering with Hyrind</h1>
-            <p className="text-muted-foreground">Your registration has been received and is under review.</p>
-            <p className="mt-2 text-sm text-muted-foreground">Expected review time: <strong>24–48 hours</strong></p>
-            <Button variant="outline" className="mt-6" onClick={() => { setRegistrationComplete(false); setApprovalStatus(null); }}>Back to Login</Button>
+      <div className="min-h-screen bg-neutral-50 flex flex-col">
+        <Header />
+        <main className="flex-grow flex items-center justify-center pt-24 pb-12 px-4">
+          <div className="mx-auto w-full max-w-md bg-white p-10 rounded-2xl border border-neutral-200 shadow-xl animate-in text-center">
+            <div className="relative mb-8 flex justify-center">
+              <div className="relative h-16 w-16 bg-neutral-50 rounded-full flex items-center justify-center border border-neutral-100 shadow-sm">
+                <Clock className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <h1 className="mb-3 text-2xl font-bold text-neutral-900">Application Received</h1>
+            <p className="text-muted-foreground mb-6 leading-relaxed">Thank you for your interest in joining Hyrind as a Recruiter. Your profile is currently under strategic review.</p>
+            <div className="bg-muted/30 rounded-2xl p-5 mb-8 border border-border/40 inline-block w-full text-left">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Status: Verification in progress</p>
+              </div>
+              <p className="text-sm text-foreground/80">Expected review time: <span className="font-bold text-primary">24–48 working hours</span></p>
+              <p className="text-xs text-muted-foreground mt-2">Our team will contact you once the verification is complete.</p>
+            </div>
+            <Button variant="outline" className="h-11 rounded-xl px-8 hover:bg-primary/5 transition-colors border-primary/20" onClick={() => { setRegistrationComplete(false); setApprovalStatus(null); }}>
+              {approvalStatus === "pending_approval" ? "Logout" : "Back to Login"}
+            </Button>
           </div>
-        </main><Footer />
-      </div>
-    );
-  }
-
-  if (approvalStatus === "pending_approval") {
-    return (
-      <div className="min-h-screen bg-background"><Header />
-        <main className="flex items-center justify-center py-20">
-          <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-8 card-elevated text-center">
-            <Clock className="mx-auto mb-4 h-12 w-12 text-secondary" />
-            <h1 className="mb-2 text-2xl font-bold text-card-foreground">Account Under Review</h1>
-            <p className="text-muted-foreground">Your HYRIND account is still pending admin approval.</p>
-            <Button variant="outline" className="mt-6" onClick={() => setApprovalStatus(null)}>Logout</Button>
-          </div>
-        </main><Footer />
+        </main>
+        <Footer />
       </div>
     );
   }
 
   if (approvalStatus === "rejected") {
     return (
-      <div className="min-h-screen bg-background"><Header />
-        <main className="flex items-center justify-center py-20">
-          <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-card p-8 card-elevated text-center">
-            <XCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
-            <h1 className="mb-2 text-2xl font-bold text-card-foreground">Account Not Approved</h1>
-            <p className="text-muted-foreground">Your application was not approved at this time.</p>
-            <Button variant="outline" className="mt-6" onClick={() => setApprovalStatus(null)}>Back to Login</Button>
+      <div className="min-h-screen bg-neutral-50 flex flex-col">
+        <Header />
+        <main className="flex-grow flex items-center justify-center pt-24 pb-12 px-4">
+          <div className="mx-auto w-full max-w-md bg-white p-10 rounded-2xl border border-neutral-200 shadow-xl animate-in text-center">
+            <div className="relative mb-6 flex justify-center">
+              <div className="relative h-16 w-16 bg-neutral-50 rounded-full flex items-center justify-center border border-neutral-100 shadow-sm">
+                <XCircle className="h-8 w-8 text-destructive" />
+              </div>
+            </div>
+            <h1 className="mb-3 text-2xl font-bold text-destructive">Application Status</h1>
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              We appreciate your interest. However, your recruiter application was not approved at this time.
+            </p>
+            <div className="p-4 rounded-xl bg-destructive/5 border border-destructive/10 mb-8 text-sm">
+              If you require further details or wish to discuss this decision, please contact our administrative team.
+            </div>
+            <div className="flex flex-col gap-3">
+              <Link to="/contact" className="inline-flex items-center justify-center h-11 rounded-xl bg-destructive text-white font-semibold shadow-lg shadow-destructive/20 hover:shadow-destructive/30 transition-all active:scale-[0.98]">
+                Contact Administration
+              </Link>
+              <Button variant="ghost" className="h-11 rounded-xl text-muted-foreground hover:text-foreground" onClick={() => setApprovalStatus(null)}>
+                Back to Login
+              </Button>
+            </div>
           </div>
-        </main><Footer />
+        </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-neutral-50 flex flex-col">
       <Header />
-      <main className="flex items-center justify-center py-12">
-        <div className="mx-auto w-full max-w-lg rounded-2xl border border-border bg-card p-8 card-elevated">
-          <h1 className="mb-2 text-2xl font-bold text-card-foreground">Recruiter Portal</h1>
-          <p className="mb-6 text-sm text-muted-foreground">Access the recruiter dashboard</p>
-          <Tabs defaultValue="login">
-            <TabsList className="w-full">
-              <TabsTrigger value="login" className="flex-1">Sign In</TabsTrigger>
-              <TabsTrigger value="register" className="flex-1">Register</TabsTrigger>
+      <main className="flex-grow flex items-center justify-center pt-24 pb-12 px-4">
+        <div className="mx-auto w-full max-w-lg bg-white rounded-2xl border border-neutral-200 p-10 shadow-xl shadow-neutral-100/50">
+          <div className="text-center mb-10">
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">Recruiter Portal</h1>
+            <p className="text-muted-foreground italic">"Empowering recruitment with analytics and precision"</p>
+          </div>
+          
+          <Tabs defaultValue="login" className="w-full">
+            <TabsList className="w-full grid grid-cols-2 mb-8 p-1 bg-neutral-100 rounded-xl border border-neutral-200">
+              <TabsTrigger value="login" className="rounded-lg py-2.5 transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary font-semibold">
+                Sign In
+              </TabsTrigger>
+              <TabsTrigger value="register" className="rounded-lg py-2.5 transition-all data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary font-semibold">
+                Register
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4 pt-4">
-                <div><Label>Email</Label><Input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required /></div>
-                <PasswordField label="Password" value={loginPassword} onChange={setLoginPassword} show={showLoginPassword} onToggle={() => setShowLoginPassword(!showLoginPassword)} />
-                <Button variant="hero" className="w-full" disabled={submitting}>{submitting ? "Signing in..." : "Sign In"}</Button>
+
+            <TabsContent value="login" className="mt-0 animate-in" style={{animationDelay: '0.1s'}}>
+              <form onSubmit={handleLogin} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="login-email" className="text-sm font-medium ml-1">Work Email</Label>
+                  <Input 
+                    id="login-email"
+                    type="email" 
+                    value={loginEmail} 
+                    onChange={e => setLoginEmail(e.target.value)} 
+                    placeholder="official@hyrind.com"
+                    className="h-11 rounded-xl bg-neutral-50 border-neutral-200 focus:bg-white transition-all shadow-sm focus:ring-2 focus:ring-primary/20"
+                    required 
+                  />
+                </div>
+                <PasswordField 
+                  label="Password" 
+                  value={loginPassword} 
+                  onChange={setLoginPassword} 
+                  show={showLoginPassword} 
+                  onToggle={() => setShowLoginPassword(!showLoginPassword)} 
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+                
+                <div className="pt-2">
+                  <Button variant="hero" className="w-full h-12 rounded-xl text-md font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all" disabled={submitting}>
+                    {submitting ? "Signing in..." : "Sign In"}
+                  </Button>
+                </div>
               </form>
             </TabsContent>
-            <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto pr-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Identity</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div><Label>First Name *</Label><Input value={reg.first_name} onChange={e => updateReg("first_name", e.target.value)} maxLength={60} />
-                    {regErrors.first_name && <p className="text-xs text-destructive mt-1">{regErrors.first_name}</p>}</div>
-                  <div><Label>Last Name *</Label><Input value={reg.last_name} onChange={e => updateReg("last_name", e.target.value)} maxLength={60} />
-                    {regErrors.last_name && <p className="text-xs text-destructive mt-1">{regErrors.last_name}</p>}</div>
-                </div>
-                <div><Label>Email *</Label><Input type="email" value={reg.email} onChange={e => updateReg("email", e.target.value)} />
-                  {regErrors.email && <p className="text-xs text-destructive mt-1">{regErrors.email}</p>}</div>
-                <div><Label>Phone *</Label><Input type="tel" value={reg.phone} onChange={e => updateReg("phone", e.target.value)} />
-                  {regErrors.phone && <p className="text-xs text-destructive mt-1">{regErrors.phone}</p>}</div>
-                <PasswordField label="Password *" value={reg.password} onChange={v => updateReg("password", v)} show={showRegPassword} onToggle={() => setShowRegPassword(!showRegPassword)} error={regErrors.password} />
-                <PasswordField label="Confirm Password *" value={reg.confirm_password} onChange={v => updateReg("confirm_password", v)} show={showConfirmPassword} onToggle={() => setShowConfirmPassword(!showConfirmPassword)} error={regErrors.confirm_password} />
 
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">Education</p>
-                <div><Label>University *</Label><Input value={reg.university_name} onChange={e => updateReg("university_name", e.target.value)} />
-                  {regErrors.university_name && <p className="text-xs text-destructive mt-1">{regErrors.university_name}</p>}</div>
-                <div><Label>Major / Degree *</Label><Input value={reg.major_degree} onChange={e => updateReg("major_degree", e.target.value)} />
-                  {regErrors.major_degree && <p className="text-xs text-destructive mt-1">{regErrors.major_degree}</p>}</div>
-                <div><Label>Graduation Date *</Label><Input type="date" value={reg.graduation_date} onChange={e => updateReg("graduation_date", e.target.value)} />
-                  {regErrors.graduation_date && <p className="text-xs text-destructive mt-1">{regErrors.graduation_date}</p>}</div>
-
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">Professional</p>
-                <div><Label>LinkedIn URL *</Label><Input type="url" value={reg.linkedin_url} onChange={e => updateReg("linkedin_url", e.target.value)} />
-                  {regErrors.linkedin_url && <p className="text-xs text-destructive mt-1">{regErrors.linkedin_url}</p>}</div>
-                <div>
-                  <Label>How did you hear about us? *</Label>
-                  <Select value={reg.how_did_you_hear} onValueChange={v => updateReg("how_did_you_hear", v)}>
-                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>{SOURCE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                  </Select>
-                  {regErrors.how_did_you_hear && <p className="text-xs text-destructive mt-1">{regErrors.how_did_you_hear}</p>}
+            <TabsContent value="register" className="mt-0 animate-in" style={{animationDelay: '0.1s'}}>
+              <form onSubmit={handleRegister} className="space-y-6 max-h-[55vh] overflow-y-auto pr-4 custom-scrollbar py-2">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">Personal Identity</span>
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium ml-1">First Name *</Label>
+                      <Input 
+                        value={reg.first_name} 
+                        onChange={e => updateReg("first_name", e.target.value)} 
+                        maxLength={60} 
+                        className="h-10 rounded-lg bg-neutral-50 border-neutral-200 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                      />
+                      {regErrors.first_name && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.first_name}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium ml-1">Last Name *</Label>
+                      <Input 
+                        value={reg.last_name} 
+                        onChange={e => updateReg("last_name", e.target.value)} 
+                        maxLength={60} 
+                        className="h-10 rounded-lg bg-neutral-50 border-neutral-200 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                      />
+                      {regErrors.last_name && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.last_name}</p>}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium ml-1">Email *</Label>
+                    <Input 
+                      type="email" 
+                      value={reg.email} 
+                      onChange={e => updateReg("email", e.target.value)} 
+                      className="h-10 rounded-lg bg-neutral-50 border-neutral-200 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                    />
+                    {regErrors.email && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.email}</p>}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium ml-1">Phone *</Label>
+                    <Input 
+                      type="tel" 
+                      value={reg.phone} 
+                      onChange={e => updateReg("phone", e.target.value)} 
+                      className="h-10 rounded-lg bg-neutral-50 border-neutral-200 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                    />
+                    {regErrors.phone && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.phone}</p>}
+                  </div>
+                  
+                  <PasswordField 
+                    label="Password *" 
+                    value={reg.password} 
+                    onChange={v => updateReg("password", v)} 
+                    show={showRegPassword} 
+                    onToggle={() => setShowRegPassword(!showRegPassword)} 
+                    error={regErrors.password} 
+                    placeholder="Minimum 8 characters"
+                  />
+                  
+                  <PasswordField 
+                    label="Confirm Password *" 
+                    value={reg.confirm_password} 
+                    onChange={v => updateReg("confirm_password", v)} 
+                    show={showConfirmPassword} 
+                    onToggle={() => setShowConfirmPassword(!showConfirmPassword)} 
+                    error={regErrors.confirm_password} 
+                  />
                 </div>
-                {reg.how_did_you_hear === "Friend" && (
-                  <div><Label>Friend's Name *</Label><Input value={reg.friend_name} onChange={e => updateReg("friend_name", e.target.value)} />
-                    {regErrors.friend_name && <p className="text-xs text-destructive mt-1">{regErrors.friend_name}</p>}</div>
-                )}
 
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">Optional</p>
-                <div><Label>Location</Label><Input value={reg.current_location} onChange={e => updateReg("current_location", e.target.value)} placeholder="City, State, Country" /></div>
-                <div><Label>Prior Recruitment Experience</Label><Textarea value={reg.prior_recruitment_experience} onChange={e => updateReg("prior_recruitment_experience", e.target.value)} maxLength={500} /></div>
-                <div>
-                  <Label>Work Type Preference</Label>
-                  <Select value={reg.work_type_preference} onValueChange={v => updateReg("work_type_preference", v)}>
-                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>{WORK_TYPE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                  </Select>
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">Background</span>
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                  </div>
+                  
+                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">University *</Label><Input value={reg.university_name} onChange={e => updateReg("university_name", e.target.value)} className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
+                    {regErrors.university_name && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.university_name}</p>}</div>
+                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">Major / Degree *</Label><Input value={reg.major_degree} onChange={e => updateReg("major_degree", e.target.value)} className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
+                    {regErrors.major_degree && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.major_degree}</p>}</div>
+                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">Graduation Date *</Label><Input type="date" value={reg.graduation_date} onChange={e => updateReg("graduation_date", e.target.value)} className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
+                    {regErrors.graduation_date && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.graduation_date}</p>}</div>
                 </div>
-                <Button variant="hero" className="w-full" disabled={submitting}>{submitting ? "Registering..." : "Create Account"}</Button>
+
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">Professional</span>
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium ml-1">LinkedIn URL *</Label>
+                    <Input 
+                      type="url" 
+                      value={reg.linkedin_url} 
+                      onChange={e => updateReg("linkedin_url", e.target.value)} 
+                      className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm"
+                    />
+                    {regErrors.linkedin_url && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.linkedin_url}</p>}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium ml-1">Discovery Source *</Label>
+                    <Select value={reg.how_did_you_hear} onValueChange={v => updateReg("how_did_you_hear", v)}>
+                      <SelectTrigger className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{SOURCE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                    </Select>
+                    {regErrors.how_did_you_hear && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.how_did_you_hear}</p>}
+                  </div>
+                  
+                  {reg.how_did_you_hear === "Friend" && (
+                    <div className="space-y-2 animate-in"><Label className="text-sm font-medium ml-1">Friend's Name *</Label><Input value={reg.friend_name} onChange={e => updateReg("friend_name", e.target.value)} className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
+                      {regErrors.friend_name && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.friend_name}</p>}</div>
+                  )}
+                </div>
+
+                <div className="space-y-4 pt-2 pb-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2">Preferences (Optional)</span>
+                    <div className="h-px bg-neutral-200 flex-grow" />
+                  </div>
+                  
+                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">Location</Label><Input value={reg.current_location} onChange={e => updateReg("current_location", e.target.value)} placeholder="City, State, Country" className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" /></div>
+                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">Prior Recruitment Experience</Label><Textarea value={reg.prior_recruitment_experience} onChange={e => updateReg("prior_recruitment_experience", e.target.value)} maxLength={500} className="rounded-lg bg-white/50 border-white/40" /></div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium ml-1">Work Type Preference</Label>
+                    <Select value={reg.work_type_preference} onValueChange={v => updateReg("work_type_preference", v)}>
+                      <SelectTrigger className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>{WORK_TYPE_OPTIONS.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="pt-4 pb-2">
+                  <Button variant="hero" className="w-full h-12 rounded-xl text-md font-semibold" disabled={submitting}>
+                    {submitting ? "Processing..." : "Create Recruiter Account"}
+                  </Button>
+                </div>
               </form>
             </TabsContent>
           </Tabs>

@@ -29,3 +29,4 @@ venv
 media
 migrations
 *.sqlite3
+db.sqlite3

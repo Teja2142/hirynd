@@ -14,6 +14,7 @@ interface PasswordFieldProps {
   autoComplete?: string;
   placeholder?: string;
   required?: boolean;
+  className?: string;
 }
 
 const PasswordField = ({
@@ -26,7 +27,8 @@ const PasswordField = ({
   id,
   autoComplete,
   placeholder,
-  required = true
+  required = true,
+  className
 }: PasswordFieldProps) => {
   const [internalShow, setInternalShow] = useState(false);
   
@@ -45,7 +47,7 @@ const PasswordField = ({
           required={required}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          className="pr-10"
+          className={`pr-10 ${className || ""}`}
         />
         <button
           type="button"
