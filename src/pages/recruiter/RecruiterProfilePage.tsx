@@ -41,9 +41,14 @@ const RecruiterProfilePage = () => {
           recruitersApi.getBankDetails().catch(() => ({ data: null }))
         ]);
         
+        const fullName = user?.profile?.full_name || prof?.full_name || "";
+        const nameParts = fullName.split(" ");
+        const fName = nameParts[0] || "";
+        const lName = nameParts.slice(1).join(" ") || "";
+
         setProfile({
-          first_name: user?.first_name || prof?.first_name || "",
-          last_name: user?.last_name || prof?.last_name || "",
+          first_name: user?.first_name || prof?.first_name || fName,
+          last_name: user?.last_name || prof?.last_name || lName,
           email: user?.email || prof?.email || "",
           phone: user?.profile?.phone || prof?.phone || "",
           city: prof?.city || "",
@@ -74,7 +79,8 @@ const RecruiterProfilePage = () => {
       // Update basic auth fields as well if changed
       await authApi.updateProfile({ 
           first_name: profile.first_name, 
-          last_name: profile.last_name 
+          last_name: profile.last_name,
+          phone: profile.phone
       });
       await refreshUser();
       toast({ title: "Profile updated successfully" });

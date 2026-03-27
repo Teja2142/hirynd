@@ -116,6 +116,8 @@ def me(request):
 @permission_classes([IsAuthenticated])
 def update_profile(request):
     profile = request.user.profile
+    if 'first_name' in request.data and 'last_name' in request.data:
+        profile.full_name = f"{request.data['first_name']} {request.data['last_name']}".strip()
     for field in ['full_name', 'phone', 'avatar_url']:
         if field in request.data:
             setattr(profile, field, request.data[field])

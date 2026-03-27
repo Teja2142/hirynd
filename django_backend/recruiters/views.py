@@ -124,19 +124,32 @@ def update_job_status(request, job_id):
         job.candidate_response_status = new_status
         job.save()
     return Response(JobLinkEntrySerializer(job).data)
+
+
 @api_view(['GET'])
-@permission_classes([IsRecruiter])
+@permission_classes([IsApproved])
 def recruiter_stats(request):
+    user = request.user
+    user_id = request.query_params.get('user_id')
+    
+    # If admin/team_lead, they can peek at someone else's stats
+    if user_id and user.role in ('admin', 'team_lead', 'team_manager'):
+        from users.models import User
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
     today = timezone.now().date()
     start_of_week = today - timezone.timedelta(days=today.weekday())
     
-    logs = DailySubmissionLog.objects.filter(recruiter=request.user)
+    logs = DailySubmissionLog.objects.filter(recruiter=user)
     
     today_logs = logs.filter(log_date=today)
     week_logs = logs.filter(log_date__gte=start_of_week)
     
     # We can also count interviews/offers from JobLinkEntry
-    jobs = JobLinkEntry.objects.filter(submitted_by=request.user)
+    jobs = JobLinkEntry.objects.filter(submitted_by=user)
     week_interviews = jobs.filter(application_status__icontains='interview', updated_at__date__gte=start_of_week).count()
     week_offers = jobs.filter(application_status='offer', updated_at__date__gte=start_of_week).count()
 
@@ -148,13 +161,13 @@ def recruiter_stats(request):
     })
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'PATCH'])
 @permission_classes([IsRecruiter])
 def recruiter_profile(request):
     from .models import RecruiterProfile
     profile, _ = RecruiterProfile.objects.get_or_create(user=request.user)
     
-    if request.method == 'POST':
+    if request.method in ('POST', 'PATCH'):
         profile.city = request.data.get('city', profile.city)
         profile.state = request.data.get('state', profile.state)
         profile.country = request.data.get('country', profile.country)

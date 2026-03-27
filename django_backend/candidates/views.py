@@ -284,10 +284,9 @@ def referrals(request, candidate_id):
         return Response(ReferralSerializer(refs, many=True).data)
 
     data = request.data.copy()
-    data['referrer'] = candidate_id
     serializer = ReferralSerializer(data=data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    serializer.save(referrer_id=candidate_id)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -302,10 +301,9 @@ def interviews(request, candidate_id):
 
     data = request.data.copy()
     data['candidate'] = candidate_id
-    data['submitted_by'] = request.user.id
     serializer = InterviewLogSerializer(data=data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    serializer.save(submitted_by=request.user)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -371,10 +369,9 @@ def placement(request, candidate_id):
 
     data = request.data.copy()
     data['candidate'] = candidate_id
-    data['closed_by'] = request.user.id
     serializer = PlacementClosureSerializer(data=data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
+    serializer.save(closed_by=request.user)
 
     Candidate.objects.filter(id=candidate_id).update(status='placed_closed')
     log_action(request.user, 'placement_closed', str(candidate_id), 'candidate', data)

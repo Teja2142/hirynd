@@ -52,7 +52,7 @@ def _get_razorpay_client():
         return None, None
         
     client = razorpay.Client(auth=(key_id, key_secret))
-    return client, key_secret
+    return client, key_id
 
 
 #  Subscription Plan CRUD 

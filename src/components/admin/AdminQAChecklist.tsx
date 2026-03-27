@@ -33,7 +33,7 @@ const AdminQAChecklist = ({ candidateId, candidateStatus }: AdminQAChecklistProp
       const assignCount = (assignRes.data || []).length;
       const logCount = (logRes.data || []).length;
       const interviewCount = (interviewRes.data || []).length;
-      const placementCount = placementRes.data ? 1 : 0;
+      const placementCount = placementRes.data && Object.keys(placementRes.data).length > 0 ? 1 : 0;
 
       setChecks([
         { label: "Intake complete", done: idx >= 3 },
