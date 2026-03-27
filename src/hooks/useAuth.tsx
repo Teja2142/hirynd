@@ -6,6 +6,8 @@ type AppRole = "candidate" | "recruiter" | "team_lead" | "team_manager" | "admin
 interface UserData {
   id: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
   role: AppRole;
   approval_status: string;
   created_at: string;

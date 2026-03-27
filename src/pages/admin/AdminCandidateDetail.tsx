@@ -175,7 +175,7 @@ const AdminCandidateDetail = ({ candidateId }: AdminCandidateDetailProps) => {
   ];
 
   return (
-    <DashboardLayout title={`Candidate: ${candidate?.profile?.full_name || "Unknown"}`} navItems={navItems}>
+    <DashboardLayout title={`Candidate: ${candidate?.profile?.full_name || candidate?.full_name || "Unknown"}`} navItems={navItems}>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <StatusBadge status={status} />
         {!isPlaced && (
@@ -237,8 +237,8 @@ const AdminCandidateDetail = ({ candidateId }: AdminCandidateDetailProps) => {
           <Card>
             <CardHeader><CardTitle>Profile</CardTitle></CardHeader>
             <CardContent className="grid gap-2 sm:grid-cols-2 text-sm">
-              <div><span className="text-muted-foreground">Name:</span> {candidate?.profile?.full_name}</div>
-              <div><span className="text-muted-foreground">Email:</span> {candidate?.profile?.email}</div>
+              <div><span className="text-muted-foreground">Name:</span> {candidate?.profile?.full_name || candidate?.full_name || "—"}</div>
+              <div><span className="text-muted-foreground">Email:</span> {candidate?.profile?.email || candidate?.email || "—"}</div>
               <div><span className="text-muted-foreground">Phone:</span> {candidate?.profile?.phone || "—"}</div>
               <div><span className="text-muted-foreground">Status:</span> {status.replace(/_/g, " ")}</div>
               <div><span className="text-muted-foreground">Registered:</span> {new Date(candidate.created_at).toLocaleDateString()}</div>

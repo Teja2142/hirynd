@@ -320,7 +320,7 @@ const RecruiterLogin = () => {
                     {regErrors.university_name && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.university_name}</p>}</div>
                   <div className="space-y-2"><Label className="text-sm font-medium ml-1">Major / Degree *</Label><Input value={reg.major_degree} onChange={e => updateReg("major_degree", e.target.value)} className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
                     {regErrors.major_degree && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.major_degree}</p>}</div>
-                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">Graduation Date *</Label><Input type="date" value={reg.graduation_date} onChange={e => updateReg("graduation_date", e.target.value)} className="h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
+                  <div className="space-y-2"><Label className="text-sm font-medium ml-1">Graduation Date *</Label><Input type="date" value={reg.graduation_date} onChange={e => updateReg("graduation_date", e.target.value)} className="block w-full h-10 rounded-lg bg-neutral-50 border-neutral-200 transition-all shadow-sm" />
                     {regErrors.graduation_date && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.graduation_date}</p>}</div>
                 </div>
 

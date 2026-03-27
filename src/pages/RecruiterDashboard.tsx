@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Routes, Route } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { recruitersApi } from "@/services/api";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, ClipboardList, User, Eye, Search, Filter } from "lucide-react";
+import { Users, ClipboardList, User, Eye, Search, Briefcase, Calendar, Award, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 const navItems = [
@@ -19,29 +19,40 @@ const navItems = [
   { label: "My Profile", path: "/recruiter-dashboard/profile", icon: <User className="h-4 w-4" /> },
 ];
 
-const RecruiterDashboard = () => {
+const RecruiterHome = () => {
   const { user } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [visaFilter, setVisaFilter] = useState("all");
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   useEffect(() => {
     if (!user) return;
-    const fetchCandidates = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await recruitersApi.myCandidates();
-        setCandidates(data || []);
-      } catch {
-        setCandidates([]);
+        const [{ data: candData }, { data: statsData }] = await Promise.all([
+          recruitersApi.myCandidates(),
+          recruitersApi.stats().catch(() => ({ data: null }))
+        ]);
+        
+        setCandidates(candData || []);
+        setStats(statsData);
+
+        // Auto-open if only one candidate is assigned
+        if (candData?.length === 1) {
+          navigate(`/recruiter-dashboard/candidates/${candData[0].id}`, { replace: true });
+        }
+      } catch (err) {
+        console.error("Failed to fetch recruiter data:", err);
       }
       setLoading(false);
     };
-    fetchCandidates();
-  }, [user]);
+    fetchData();
+  }, [user, navigate]);
 
   const filteredCandidates = candidates.filter(c => {
     const matchesSearch = !search || 
@@ -49,35 +60,66 @@ const RecruiterDashboard = () => {
       c.email?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     const matchesVisa = visaFilter === "all" || c.profile?.visa_status === visaFilter;
-    return matchesSearch && matchesStatus && matchesVisa;
+    
+    let matchesDate = true;
+    if (dateRange.start || dateRange.end) {
+      const updatedAt = new Date(c.updated_at || c.created_at);
+      if (dateRange.start && updatedAt < new Date(dateRange.start)) matchesDate = false;
+      if (dateRange.end && updatedAt > new Date(dateRange.end)) matchesDate = false;
+    }
+
+    return matchesSearch && matchesStatus && matchesVisa && matchesDate;
   });
 
-  const subPath = location.pathname.replace("/recruiter-dashboard", "").replace(/^\//, "");
-  if (subPath.startsWith("candidates/")) {
-    const candidateId = subPath.replace("candidates/", "");
-    return <RecruiterCandidateDetail candidateId={candidateId} />;
-  }
+  if (loading) return <div className="p-8 text-center text-muted-foreground font-medium flex items-center justify-center gap-2"><TrendingUp className="h-4 w-4 animate-pulse" /> Loading your dashboard...</div>;
 
   return (
-    <DashboardLayout title="Recruiter Dashboard" navItems={navItems}>
-      <Card>
-        <CardHeader className="pb-3 px-6 pt-6">
+    <div className="space-y-6">
+      {/* Stats Widgets */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: "Applications Today", value: stats?.apps_today || 0, icon: <ClipboardList className="h-4 w-4 text-primary" />, color: "bg-primary/10" },
+          { label: "Applications This Week", value: stats?.apps_week || 0, icon: <TrendingUp className="h-4 w-4 text-secondary" />, color: "bg-secondary/10" },
+          { label: "Interviews This Week", value: stats?.interviews_week || 0, icon: <Calendar className="h-4 w-4 text-emerald-500" />, color: "bg-emerald-500/10" },
+          { label: "Offers This Week", value: stats?.offers_week || 0, icon: <Award className="h-4 w-4 text-amber-500" />, color: "bg-amber-500/10" },
+        ].map((s, idx) => (
+          <Card key={idx} className="overflow-hidden border-none shadow-sm bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                  <h3 className="text-2xl font-bold mt-1">{s.value}</h3>
+                </div>
+                <div className={`h-10 w-10 rounded-xl ${s.color} flex items-center justify-center`}>
+                  {s.icon}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="pb-3 px-6 pt-6 border-b border-border/50">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-              <Users className="h-4 w-4 text-secondary" /> Assigned Candidates
-            </CardTitle>
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg font-bold">
+                <Users className="h-5 w-5 text-secondary" /> Assigned Candidates
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Manage and track your assigned candidate pool</p>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full md:w-64">
                 <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input 
                   placeholder="Search name or email..." 
-                  className="pl-9 text-sm h-9" 
+                  className="pl-9 text-sm h-9 bg-background/50" 
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px] h-9 text-xs">
+                <SelectTrigger className="w-[140px] h-9 text-xs bg-background/50">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -86,70 +128,81 @@ const RecruiterDashboard = () => {
                   <SelectItem value="roles_suggested">Roles Suggested</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                   <SelectItem value="active_marketing">Active Marketing</SelectItem>
+                  <SelectItem value="placed">Placed</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={visaFilter} onValueChange={setVisaFilter}>
-                <SelectTrigger className="w-[140px] h-9 text-xs">
-                  <SelectValue placeholder="Visa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Visas</SelectItem>
-                  <SelectItem value="H1B">H1B</SelectItem>
-                  <SelectItem value="OPT">OPT</SelectItem>
-                  <SelectItem value="CPT">CPT</SelectItem>
-                  <SelectItem value="US Citizen">US Citizen</SelectItem>
-                  <SelectItem value="Green Card">Green Card</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1 bg-background/50 border rounded-md px-2 h-9">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                <input 
+                  type="date" 
+                  className="bg-transparent text-[10px] outline-none w-24" 
+                  value={dateRange.start}
+                  onChange={e => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                />
+                <span className="text-muted-foreground">-</span>
+                <input 
+                  type="date" 
+                  className="bg-transparent text-[10px] outline-none w-24" 
+                  value={dateRange.end}
+                  onChange={e => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-muted-foreground text-sm">Loading...</p>
-          ) : candidates.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-3">
-                <Users className="h-6 w-6 text-muted-foreground" />
+        <CardContent className="p-0">
+          {candidates.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-muted/30 mb-4">
+                <Users className="h-8 w-8 text-muted-foreground/50" />
               </div>
-              <p className="text-sm font-medium text-card-foreground">No candidates assigned yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Candidates will appear here once assigned by an admin.</p>
+              <h4 className="text-base font-semibold">No candidates assigned yet</h4>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Your assigned candidates will appear here for management.</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-border overflow-hidden">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableHead className="text-xs font-semibold">Name</TableHead>
-                    <TableHead className="text-xs font-semibold">Email</TableHead>
-                    <TableHead className="text-xs font-semibold">Status</TableHead>
-                    <TableHead className="text-xs font-semibold">Actions</TableHead>
+                  <TableRow className="bg-muted/30 hover:bg-muted/30 border-none">
+                    <TableHead className="text-xs font-bold px-6">Candidate</TableHead>
+                    <TableHead className="text-xs font-bold px-6">Visa Status</TableHead>
+                    <TableHead className="text-xs font-bold px-6">Pipeline Status</TableHead>
+                    <TableHead className="text-xs font-bold px-6">Last Updated</TableHead>
+                    <TableHead className="text-xs font-bold px-6 text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCandidates.map((c: any, i: number) => (
                     <motion.tr
                       key={c.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="border-b border-border hover:bg-muted/20 transition-colors"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="group border-b border-border/40 hover:bg-muted/10 transition-colors"
                     >
-                      <TableCell className="font-medium text-sm">
-                        <div>
-                          {c.full_name || "—"}
-                          {c.profile?.visa_status && (
-                            <span className="ml-2 text-[10px] bg-secondary/10 text-secondary px-1 py-0.5 rounded">
-                              {c.profile.visa_status}
-                            </span>
-                          )}
+                      <TableCell className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm group-hover:text-secondary transition-colors underline-offset-4 decoration-secondary/30">{c.full_name || "—"}</span>
+                          <span className="text-xs text-muted-foreground">{c.email}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{c.email || "—"}</TableCell>
-                      <TableCell><StatusBadge status={c.status} /></TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => navigate(`/recruiter-dashboard/candidates/${c.id}`)}>
-                          <Eye className="mr-1 h-3.5 w-3.5" /> View
+                      <TableCell className="px-6 py-4">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-secondary/10 text-secondary border border-secondary/20 uppercase tracking-tighter">
+                          {c.profile?.visa_status || "N/A"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-6 py-4"><StatusBadge status={c.status} /></TableCell>
+                      <TableCell className="px-6 py-4 text-xs text-muted-foreground">
+                        {new Date(c.updated_at || c.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </TableCell>
+                      <TableCell className="px-6 py-4 text-right">
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="h-8 px-4 text-xs font-medium rounded-lg" 
+                          onClick={() => navigate(`/recruiter-dashboard/candidates/${c.id}`)}
+                        >
+                          <Eye className="mr-1.5 h-3.5 w-3.5" /> Manage
                         </Button>
                       </TableCell>
                     </motion.tr>
@@ -160,8 +213,33 @@ const RecruiterDashboard = () => {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+import DailyLogPage from "@/pages/recruiter/DailyLogPage";
+import RecruiterProfilePage from "@/pages/recruiter/RecruiterProfilePage";
+
+const RecruiterDashboard = () => {
+  return (
+    <DashboardLayout title="Recruiter Dashboard" navItems={navItems}>
+      <Routes>
+        <Route path="/" element={<RecruiterHome />} />
+        <Route path="/candidates/:candidateId" element={<CandidateDetailWrapper />} />
+        <Route path="/daily-log" element={<DailyLogPage />} />
+        <Route path="/profile" element={<RecruiterProfilePage />} />
+      </Routes>
     </DashboardLayout>
   );
+};
+
+const CandidateDetailWrapper = () => {
+  const { candidateId } = useLocation().pathname.split("/").slice(-1).reduce((acc, val) => ({ candidateId: val }), { candidateId: "" });
+  // More robust way to get candidateId from path if nested
+  const pathParts = useLocation().pathname.split("/");
+  const idFromPath = pathParts[pathParts.length - 1];
+  
+  return <RecruiterCandidateDetail candidateId={idFromPath} />;
 };
 
 export default RecruiterDashboard;

@@ -360,7 +360,7 @@ const CandidateLogin = () => {
                       type="date" 
                       value={reg.graduation_date} 
                       onChange={e => updateReg("graduation_date", e.target.value)} 
-                      className="h-10 rounded-lg bg-neutral-50 border-neutral-200 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                      className="block h-10 rounded-lg bg-neutral-50 border-neutral-200 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
                     />
                     {regErrors.graduation_date && <p className="text-[10px] text-destructive mt-1 font-medium ml-1">{regErrors.graduation_date}</p>}
                   </div>

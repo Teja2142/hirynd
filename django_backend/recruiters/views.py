@@ -85,12 +85,15 @@ def daily_logs(request, candidate_id):
         ).prefetch_related('job_entries').order_by('-log_date')
         return Response(DailySubmissionLogSerializer(logs, many=True).data)
 
-    log = DailySubmissionLog.objects.create(
+    log, created = DailySubmissionLog.objects.get_or_create(
         candidate_id=candidate_id,
         recruiter=request.user,
-        applications_count=request.data.get('applications_count', 0),
-        notes=request.data.get('notes', ''),
+        log_date=timezone.now().date(),
     )
+    
+    log.applications_count += int(request.data.get('applications_count', 0))
+    log.notes = (log.notes or "") + "\n" + request.data.get('notes', '')
+    log.save()
 
     job_links = request.data.get('job_links', [])
     for jl in job_links:
@@ -101,7 +104,8 @@ def daily_logs(request, candidate_id):
             role_title=jl.get('role_title', ''),
             job_url=jl.get('job_url', ''),
             resume_used=jl.get('resume_used', ''),
-            status=jl.get('status', 'applied'),
+            application_status=jl.get('status', 'applied').lower().replace(' ', '_'),
+            submitted_by=request.user
         )
 
     return Response(DailySubmissionLogSerializer(log).data, status=status.HTTP_201_CREATED)
@@ -120,6 +124,81 @@ def update_job_status(request, job_id):
         job.candidate_response_status = new_status
         job.save()
     return Response(JobLinkEntrySerializer(job).data)
+@api_view(['GET'])
+@permission_classes([IsRecruiter])
+def recruiter_stats(request):
+    today = timezone.now().date()
+    start_of_week = today - timezone.timedelta(days=today.weekday())
+    
+    logs = DailySubmissionLog.objects.filter(recruiter=request.user)
+    
+    today_logs = logs.filter(log_date=today)
+    week_logs = logs.filter(log_date__gte=start_of_week)
+    
+    # We can also count interviews/offers from JobLinkEntry
+    jobs = JobLinkEntry.objects.filter(submitted_by=request.user)
+    week_interviews = jobs.filter(application_status__icontains='interview', updated_at__date__gte=start_of_week).count()
+    week_offers = jobs.filter(application_status='offer', updated_at__date__gte=start_of_week).count()
+
+    return Response({
+        'apps_today': sum(l.applications_count for l in today_logs),
+        'apps_week': sum(l.applications_count for l in week_logs),
+        'interviews_week': week_interviews,
+        'offers_week': week_offers
+    })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsRecruiter])
+def recruiter_profile(request):
+    from .models import RecruiterProfile
+    profile, _ = RecruiterProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        profile.city = request.data.get('city', profile.city)
+        profile.state = request.data.get('state', profile.state)
+        profile.country = request.data.get('country', profile.country)
+        profile.linkedin_url = request.data.get('linkedin_url', profile.linkedin_url)
+        profile.save()
+        return Response({'message': 'Profile updated'})
+
+    return Response({
+        'city': profile.city,
+        'state': profile.state,
+        'country': profile.country,
+        'linkedin_url': profile.linkedin_url
+    })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsRecruiter])
+def bank_details(request):
+    from .models import RecruiterBankDetails
+    bank, _ = RecruiterBankDetails.objects.get_or_create(recruiter=request.user)
+    
+    if request.method == 'POST':
+        acc = request.data.get('account_number', '')
+        rtn = request.data.get('routing_number', '')
+        
+        bank.bank_name = request.data.get('bank_name', bank.bank_name)
+        if acc and not acc.startswith('****'):
+            bank.account_number_last4 = acc[-4:]
+            bank.account_number_encrypted = acc # Simple storage for now
+        if rtn and not rtn.startswith('****'):
+            bank.routing_number_last4 = rtn[-4:]
+            bank.routing_number_encrypted = rtn
+        bank.save()
+        
+        log_action(request.user, 'bank_details_updated', str(request.user.id), 'recruiter_bank', {'bank_name': bank.bank_name})
+        return Response({'message': 'Bank details updated'})
+
+    return Response({
+        'bank_name': bank.bank_name,
+        'account_number_last4': bank.account_number_last4,
+        'routing_number_last4': bank.routing_number_last4
+    })
+
+
 @api_view(['POST'])
 @permission_classes([IsRecruiter])
 def fetch_job_details(request):

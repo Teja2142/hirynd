@@ -113,6 +113,11 @@ export const recruitersApi = {
   submitDailyLog: (candidateId: string, data: any) => api.post(`/recruiters/${candidateId}/daily-logs/`, data),
   updateJobStatus: (jobId: string, status: string) => api.post(`/recruiters/jobs/${jobId}/status/`, { status }),
   fetchJobDetails: (url: string) => api.post(`/recruiters/fetch-job-details/`, { url }),
+  stats: () => api.get('/recruiters/stats/'),
+  getProfile: () => api.get('/recruiters/profile/'),
+  updateProfile: (data: any) => api.patch('/recruiters/profile/', data),
+  getBankDetails: () => api.get('/recruiters/bank-details/'),
+  updateBankDetails: (data: any) => api.post('/recruiters/bank-details/', data),
 };
 
 // ─── Billing ───
